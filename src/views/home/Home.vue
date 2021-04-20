@@ -1,38 +1,113 @@
 <template>
   <div id="home">
-    <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
+    <nav-bar class="home-nav"><div slot="nav-center">购物街</div></nav-bar>
     <home-swiper :banners="banners"/>
     <recommend-view :recommends="recommends"/>
+    <feature-view/>
+    <tab-control :titles="['流行','新款','精选']"/>
+<!--    <good-list :goods="goods['pop'].list"/>-->
+    <ul>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+      <li>选项</li>
+    </ul>
   </div>
 </template>
 
 <script>
+  //可复用组件
   import NavBar from 'components/common/navbar/NavBar';
+  //当前项目可复用组件
+  import TabControl from 'components/content/tabControl/TabControl'
+  import GoodList from'components/content/goods/GoodList'
+  //普通组件
   import HomeSwiper from './childComps/HomeSwiper'
   import RecommendView from './childComps/RecommendView'
-
-  import {getHomeMultidata} from "network/home";
+  import featureView from './childComps/featureView'
+  //方法
+  import {getHomeMultidata,getHomeGoods } from "network/home";
 
   export default {
     name: "Home",
     components: {
+      //可复用组件
       NavBar,
+      //当前项目可复用组件
+      TabControl,
+      GoodList,
+      //普通组件
       HomeSwiper,
-      RecommendView
+      RecommendView,
+      featureView
     },
     data() {
       return {
         banners: [],
-        recommends: []
+        recommends: [],
+        goods:{
+          'pop':{page:0,list:[]},
+          'new':{page:0,list:[]},
+          'sell':{page:0,list:[]}
+        },
+        currentType: 'pop',
+      }
+    },
+    computed: {
+      showGoods() {
+        return this.goods[this.currentType].list
       }
     },
     created() {
       // 1.请求多个数据
-      getHomeMultidata().then(res => {
-        // this.result = res;
-        this.banners = res.data.banner.list;
-        this.recommends = res.data.recommend.list;
-      })
+        this.getHomeMultidata()
+      //2.请求商品数据
+      this.getHomeGoods('pop')
+      this.getHomeGoods('new')
+      this.getHomeGoods('sell')
+    },
+    methods:{
+      // 网络请求相关方法
+     getHomeMultidata(){
+       getHomeMultidata().then(res => {
+         // this.result = res;
+         this.banners = res.data.banner.list;
+         this.recommends = res.data.recommend.list;
+       })
+     },
+      getHomeGoods(type) {
+        const page = this.goods[type].page + 1
+        getHomeGoods(type, page).then(res => {
+          // this.goods[type].list.push(...res.data.list)
+          this.goods[type].page += 1
+        })
+      }
     }
   }
 </script>
@@ -41,5 +116,18 @@
   .home-nav {
     background-color: var(--color-tint);
     color: #fff;
+    position: fixed;
+    top:0;
+    right: 0;
+    left: 0;
+    z-index: 9;
+  }
+  #home{
+  padding-top: 44px;
+  }
+  .tab-control{
+    position: sticky;
+    top:44px;
+    z-index: 9;
   }
 </style>
