@@ -1,43 +1,13 @@
 <template>
   <div id="home">
     <nav-bar class="home-nav"><div slot="nav-center">购物街</div></nav-bar>
-    <home-swiper :banners="banners"/>
-    <recommend-view :recommends="recommends"/>
-    <feature-view/>
-    <tab-control :titles="['流行','新款','精选']"/>
-<!--    <good-list :goods="goods['pop'].list"/>-->
-    <ul>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-      <li>选项</li>
-    </ul>
+
+      <home-swiper :banners="banners"/>
+      <recommend-view :recommends="recommends"/>
+      <feature-view/>
+      <tab-control :titles="['流行','新款','精选']"
+                    @tabClick="tabClick"  />
+      <good-list :goods="showGoods"/>
   </div>
 </template>
 
@@ -93,6 +63,20 @@
       this.getHomeGoods('sell')
     },
     methods:{
+      //事件监听方法：
+      tabClick(index){
+          switch (index) {
+            case 0:
+              this.currentType = 'pop'
+              break
+            case 1:
+              this.currentType = 'new'
+              break
+            case 2:
+              this.currentType = 'sell'
+              break
+          }
+      },
       // 网络请求相关方法
      getHomeMultidata(){
        getHomeMultidata().then(res => {
@@ -104,7 +88,7 @@
       getHomeGoods(type) {
         const page = this.goods[type].page + 1
         getHomeGoods(type, page).then(res => {
-          // this.goods[type].list.push(...res.data.list)
+          this.goods[type].list.push(...res.data.list)
           this.goods[type].page += 1
         })
       }
