@@ -1,15 +1,17 @@
 <template>
 <div id="detail">
-  <detail-nav-bar  class="detail-nav"/>
+  <detail-nav-bar  class="detail-nav" @titleClick="titleClick"/>
   <scroll class="content" ref="scroll">
     <detail-swiper :top-images="topImages"/>
     <detail-base-info :goods="goods"/>
     <detail-shop-info :shop="shop"/>
     <detail-goods-info :detail-info="detailInfo" @imageload="imageLoad"/>
-    <detail-param-info :param-info="paramInfo"/>
-    <detail-comment-info :comment-info="commentInfo"/>
-    <good-list :goods="recommendInfo"/>
+    <detail-param-info  ref="param" :param-info="paramInfo"/>
+    <detail-comment-info  ref="comment" :comment-info="commentInfo"/>
+    <good-list ref="recommend" :goods="recommendInfo"/>
   </scroll>
+  <back-top v-show="isShowTop" @click.native="backClick"/>
+  <detail-bottom-bar @addCart="addToCart"/>
 </div>
 </template>
 
@@ -22,16 +24,21 @@
   import DetailGoodsInfo from './childComp/DetailGoodsInfo'
   import DetailParamInfo from './childComp/DetailParamInfo'
   import DetailCommentInfo from './childComp/DetailCommentInfo'
+  import DetailBottomBar from './childComp/DetailBottomBar'
   //可复用组件
   import Scroll from 'components/common/scroll/Scroll'
   //当前项目可复用的组件
   import GoodList from 'components/content/goods/GoodList'
+  import BackTop from "../../components/content/backTop/BackTop";
   //方法
   import {getDetail,getRecommend,Goods,Shop,GoodsParam} from "../../network/detail";
+  import {debounce} from "../../../common/utils";
+  import {backTopMinXin} from "../../../common/minxin";
 
   export default {
         name: "Detail",
       components: {
+
           //普通组件
           DetailNavBar,
           DetailSwiper,
@@ -40,10 +47,12 @@
           DetailGoodsInfo,
           DetailParamInfo,
           DetailCommentInfo,
+          DetailBottomBar,
           //可复用组件
           Scroll,
         //当前项目可复用的组件
-          GoodList
+          GoodList,
+          BackTop,
       },
       data(){
           return{
@@ -54,7 +63,9 @@
             detailInfo:{},
             paramInfo:{},
             commentInfo:{},
-            recommendInfo:[]
+            recommendInfo:[],
+            themeTopY:[],
+            getThemeTopY:null
           }
         },
       created(){
@@ -84,12 +95,46 @@
               this.recommendInfo = res.data.list
               console.log(res);
           })
+            //4.获取getThemeTopY
+         this.getThemeTopY = debounce(()=>{
+            this.themeTopY = []
+            this.themeTopY.push(0);
+            this.themeTopY.push(this.$refs.param.$el.offsetTop)
+            this.themeTopY.push(this.$refs.comment.$el.offsetTop)
+            this.themeTopY.push(this.$refs.recommend.$el.offsetTop)
+             console.log(this.themeTopY)
+        },50)
       },
+    mixins:[backTopMinXin],
     methods:{
           imageLoad(){
             this.$refs.scroll.refresh();
+            this.getThemeTopY()
+          },
+          titleClick(index){
+            this.$refs.scroll.scrollTo(0,this.themeTopY[index],100)
+            // console.log(index);
+          },
+          addToCart(){
+            //1.获取商品信息
+            const product = {}
+            product.iid = this.iid;
+            product.image = this.topImages[0];
+            product.title = this.goods.title;
+            product.desc = this.goods.desc;
+            product.price = this.goods.realPrice
+            //2.将商品添加到购物车
+            // this.$store.commit('addCart',product)
+            this.$store.dispatch('addCart',product)
           }
+
        }
+    // mounted(){
+    //       const refresh = debounce(this.$refs.scroll.refresh,50)
+    //       this.$bus.$on('imageLoad',()=>{
+    //         refresh()
+    //       })
+    // }
     }
 </script>
 
